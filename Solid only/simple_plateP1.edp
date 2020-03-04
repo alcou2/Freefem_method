@@ -1,0 +1,90 @@
+include "getARGV.idp"
+
+real cpu = clock();
+load "iovtk"
+cout.precision(8);
+cout.scientific.showpos;
+
+real Lpl = 1; // Plate length
+real Tpl = 0.05; // Plate thickness
+real Rpl = Lpl/Tpl;
+
+real E = 1.5e8; // Solid's Young modulus
+real nu = 0; // Solid's Poisson ratio
+real mu= E/(2*(1+nu));
+real lambda  = E*nu/((1+nu)*(1-2*nu)); 
+real rhos = 2000; // Solid density
+
+border b0(t=0,1) {x = 0; y = Tpl/2-Tpl*t; label=1;} // Fixed end of the plate
+border b1(t=0,1) {x = Lpl*t; y = -Tpl/2; label=2;} // plate top
+border b2(t=0,1) {x = Lpl; y = -Tpl/2+Tpl*t; label=6;} // plate's end
+border b3(t=0,1) {x = Lpl - Lpl*t; y = Tpl/2; label=2;} // plate bottom
+
+real meshSizeSolid = getARGV("-mhS",1);
+
+// Solid mesh
+mesh Ths = buildmesh (b0(meshSizeSolid) + b1(Rpl*meshSizeSolid) + b2(meshSizeSolid) + b3(Rpl*meshSizeSolid));
+
+savemesh(Ths,"./meshes/solidMesh.msh");
+
+// Show mesh
+//plot(Ths, wait=1); 
+
+
+real tgv = 1e30;
+real sigma = 100;
+
+
+// Solid stiffness K and mass M matrices
+
+//macro epsilon(u1,u2)  [dx(u1),dy(u2),(dy(u1)+dx(u2))/2] // EOM
+//macro dPsil(u1,u2,v1,v2) (epsilon(u1,u2) '* A * epsilon(v1,v2)) // EOM
+//macro div(u1,u2) ( dx(u1)+dy(u2) ) // EOM
+
+//macro dn(u) ( N.x*dx(u) + N.y*dy(u) ) // normal derivative
+//macro dtau(u) ( N.y*dx(u) + N.x*dy(u) ) // tangential derivative
+
+//fespace Vhs(Ths,[P1, P1]);
+//Vhs [u1,u2] = [0.,0.];
+
+//func A = [ [ 2. * mu + lambda, 0., lambda],
+//           [ 0., mu, 0.],
+//           [ lambda, 0., 2. * mu + lambda]];
+
+//varf ms([ux,uy], [vx,vy]) = 
+//	int2d(Ths) (rhos * (ux*vx + uy*vy));
+//matrix Ms = ms(Vhs, Vhs, solver=UMFPACK);
+
+//varf ks([ux,uy],[vx,vy]) =
+//	int2d(Ths) (dPsil(ux, uy, vx, vy))
+//	+ on(1, ux=0, uy=0); // Clamped end boundary condition
+//matrix Ks = ks(Vhs, Vhs, tgv=tgv, solver=UMFPACK);
+
+fespace Vhs(Ths,[P1, P1]);
+//Vhs [u1,u2] = [0.,0.];
+Vhs [usx,usy],[vsx,vsy];
+
+varf ms([usx,usy], [vsx,vsy]) = 
+	int2d(Ths) (rhos * (usx*vsx + usy*vsy))
+	+ on(1, usx=0, usy=0); // Clamped end boundary condition
+	//+ on(6, ux=0, uy=0);
+matrix Ms = ms(Vhs, Vhs, solver=UMFPACK);
+
+// Macros
+real sqrt2=sqrt(2.);
+macro epsilon(u1,u2) [dx(u1),dy(u2),(dy(u1)+dx(u2))/sqrt2] //
+macro div(u1,u2) ( dx(u1)+dy(u2) ) //
+
+varf ks([usx,usy],[vsx,vsy]) =
+	//int2d(Ths) (dPsil(usx, usy, vsx, vsy));
+	int2d(Ths) ( lambda * div(usx, usy) * div(vsx, vsy) + 2.*mu * ( epsilon(usx,usy)' * epsilon(vsx,vsy)))
+	+ on(1, usx=0, usy=0);
+matrix Ks = ks(Vhs, Vhs, solver=UMFPACK);
+
+// Export matrices
+
+ofstream foutMs("./FFMatrices/Ms.dat");
+foutMs << Ms << endl;
+
+ofstream foutKs("./FFMatrices/Ks.dat");
+foutKs << Ks << endl;

@@ -1,0 +1,122 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=2.545in,
+height=2.461in,
+at={(0.989in,0.507in)},
+scale only axis,
+x dir=reverse,
+xmode=log,
+xmin=0.00398107170553497,
+xmax=0.1,
+xminorticks=true,
+xlabel style={font=\color{white!15!black}},
+xlabel={r},
+ymin=0.92,
+ymax=1.02,
+ylabel style={font=\color{white!15!black}},
+ylabel={$\omega\text{/}\omega{}_{\text{ref}}$},
+axis background/.style={fill=white},
+title style={font=\bfseries},
+title={(a)},
+axis x line*=bottom,
+axis y line*=left,
+legend style={at={(0.322,0.207)}, anchor=south west, legend cell align=left, align=left, draw=white!15!black}
+]
+\addplot [color=blue, mark=o, mark options={solid, blue}]
+  table[row sep=crcr]{%
+0.1	0.937817206345194\\
+0.0630957344480193	0.955754567573648\\
+0.0398107170553497	0.96414533584906\\
+0.0251188643150958	0.969918080066116\\
+0.0158489319246111	0.968026974664792\\
+0.01	0.975983071888855\\
+0.00630957344480194	0.977227188412223\\
+0.00398107170553497	0.97522735401179\\
+};
+\addlegendentry{Mode 1}
+
+\addplot [color=black, mark=square, mark options={solid, black}]
+  table[row sep=crcr]{%
+0.1	0.95796263216683\\
+0.0630957344480193	0.997228841416476\\
+0.0398107170553497	1.00285185489041\\
+0.0251188643150958	1.01159349406161\\
+0.0158489319246111	1.01053250966111\\
+0.01	1.01430656185445\\
+0.00630957344480194	1.01535741446213\\
+0.00398107170553497	1.0116665916589\\
+};
+\addlegendentry{Mode 2}
+
+\end{axis}
+
+\begin{axis}[%
+width=2.545in,
+height=2.461in,
+at={(4.337in,0.507in)},
+scale only axis,
+xmin=0,
+xmax=12,
+xlabel style={font=\color{white!15!black}},
+xlabel={$\text{n}_{\text{hf}}$},
+ymin=0.97,
+ymax=1.04,
+ylabel style={font=\color{white!15!black}},
+ylabel={$\omega\text{/}\omega{}_\text{r}\text{ef}$},
+axis background/.style={fill=white},
+title style={font=\bfseries},
+title={(b)},
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\addplot [color=blue, mark=o, mark options={solid, blue}]
+  table[row sep=crcr]{%
+1	1.00746940970278\\
+2	0.983778775869052\\
+4	0.977602579750787\\
+6	0.976441906475355\\
+8	0.975983071888855\\
+10	0.979230875987094\\
+12	0.975669628359476\\
+};
+\addlegendentry{Mode 1}
+
+\addplot [color=black, mark=square, mark options={solid, black}]
+  table[row sep=crcr]{%
+1	1.03638868017707\\
+2	1.01976374868257\\
+4	1.01549281812568\\
+6	1.01462229240903\\
+8	1.01430656185445\\
+10	1.01464193766738\\
+12	1.01407566017694\\
+};
+\addlegendentry{Mode 2}
+
+\end{axis}
+
+\begin{axis}[%
+width=7.604in,
+height=3.208in,
+at={(0in,0in)},
+scale only axis,
+xmin=0,
+xmax=1,
+ymin=0,
+ymax=1,
+axis line style={draw=none},
+ticks=none,
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\end{axis}
+\end{tikzpicture}%

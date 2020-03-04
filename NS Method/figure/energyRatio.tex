@@ -1,0 +1,99 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=4.392in,
+height=2.967in,
+at={(0.737in,0.444in)},
+scale only axis,
+bar shift auto,
+log origin=infty,
+xmin=-0.2,
+xmax=31.2,
+xlabel style={font=\color{white!15!black}},
+xlabel={Mode number},
+ymode=log,
+ymin=1e-10,
+ymax=100000,
+yminorticks=true,
+ylabel style={font=\color{white!15!black}},
+ylabel={$\text{E}_\text{s}\text{/E}_\text{f}$},
+axis background/.style={fill=white},
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\addplot[ybar, bar width=0.8, fill=red, draw=black, area legend] table[row sep=crcr] {%
+1	2.20485591696086e-07\\
+2	0.0650116193893642\\
+3	2.49545919340023e-07\\
+4	1.01598835569296e-06\\
+5	0.30040169306951\\
+6	0.382080832911575\\
+7	0.000155697181882103\\
+8	0.000291783691856784\\
+9	0.000562369793213213\\
+10	2.83033211836683e-05\\
+11	2.85045631251446e-05\\
+12	2.60303503662901e-08\\
+};
+\addlegendentry{data1}
+
+\addplot[ybar, bar width=0.8, fill=red, draw=black, area legend] table[row sep=crcr] {%
+15	8.81052112220767e-05\\
+16	9.3422807507833e-05\\
+17	1.44048574020542e-05\\
+18	1.07393436990577e-05\\
+19	1.73758221361417e-11\\
+};
+\addlegendentry{data2}
+
+\addplot[ybar, bar width=0.8, fill=red, draw=black, area legend] table[row sep=crcr] {%
+22	0.000148171627454969\\
+23	0.000287066733866349\\
+24	1.25987959948265e-13\\
+25	3.37912067162915e-13\\
+26	0.00010497942582594\\
+27	0.000199453990966223\\
+28	2.19575694729771e-18\\
+29	1.23424647674078e-13\\
+30	1.82925230520166e-17\\
+};
+\addlegendentry{data3}
+
+\addplot[ybar, bar width=0.8, fill=green, draw=black, area legend] table[row sep=crcr] {%
+13	584.062941373848\\
+14	538.928294551219\\
+};
+\addlegendentry{data4}
+
+\addplot[ybar, bar width=0.8, fill=green, draw=black, area legend] table[row sep=crcr] {%
+20	306.238469282936\\
+21	502.300705549702\\
+};
+\addlegendentry{data5}
+
+\end{axis}
+
+\begin{axis}[%
+width=5.667in,
+height=3.688in,
+at={(0in,0in)},
+scale only axis,
+xmin=0,
+xmax=1,
+ymin=0,
+ymax=1,
+axis line style={draw=none},
+ticks=none,
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\end{axis}
+\end{tikzpicture}%

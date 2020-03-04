@@ -1,0 +1,20 @@
+ include "./getARGV.idp"
+
+int nH = getARGV("-nH",3); // Mesh number
+
+mesh Thf = readmesh("./meshes/fluidMeshFF"+nH+".msh");
+mesh Ths = readmesh("./meshes/solidMeshFF"+nH+".msh");
+
+fespace VhTestf(Thf,P2);
+VhTestf testxf=x;
+VhTestf testyf=y;
+
+{ofstream file("./meshes/xf.dat"); file<<testxf[];}
+{ofstream file("./meshes/yf.dat"); file<<testyf[];}
+
+fespace VhTests(Ths,P2);
+VhTests testxs=x;
+VhTests testys=y;
+
+{ofstream file("./meshes/xs.dat"); file<<testxs[];}
+{ofstream file("./meshes/ys.dat"); file<<testys[];}

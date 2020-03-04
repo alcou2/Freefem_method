@@ -1,0 +1,83 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=3.692in,
+height=3.366in,
+at={(1.434in,0.507in)},
+scale only axis,
+xmin=0,
+xmax=50000,
+xlabel style={font=\color{white!15!black}},
+xlabel={$\text{n}_\text{t}$},
+ymin=-0.83,
+ymax=-0.79,
+ylabel style={font=\color{white!15!black}},
+ylabel={$\text{Im(}\omega\text{)}$},
+axis background/.style={fill=white},
+title={(a)},
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\addplot [color=black, line width=1.0pt, mark=square, mark options={solid, black}]
+  table[row sep=crcr]{%
+4246	-0.826643994749963\\
+9797	-0.816235668435149\\
+17444	-0.797513172411289\\
+27623	-0.792277252808169\\
+42815	-0.7943154684351\\
+};
+\addlegendentry{data1}
+
+\end{axis}
+
+\begin{axis}[%
+width=3.692in,
+height=3.366in,
+at={(6.292in,0.507in)},
+scale only axis,
+xmin=0,
+xmax=50000,
+xlabel style={font=\color{white!15!black}},
+xlabel={$\text{n}_\text{t}$},
+ymin=2.902,
+ymax=2.92,
+ylabel style={font=\color{white!15!black}},
+ylabel={$\text{Re(}\omega\text{)}$},
+axis background/.style={fill=white},
+title={(b)},
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\addplot [color=black, line width=1.0pt, mark=square, mark options={solid, black}]
+  table[row sep=crcr]{%
+4246	2.91807085889438\\
+9797	2.90828852356177\\
+17444	2.90437189548507\\
+27623	2.90388428012885\\
+42815	2.9036846516468\\
+};
+\addlegendentry{data1}
+
+\end{axis}
+
+\begin{axis}[%
+width=11.031in,
+height=4.188in,
+at={(0in,0in)},
+scale only axis,
+xmin=0,
+xmax=1,
+ymin=0,
+ymax=1,
+axis line style={draw=none},
+ticks=none,
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\end{axis}
+\end{tikzpicture}%

@@ -1,0 +1,52 @@
+
+//mesh Th = readmesh("fluidMeshFF2.msh");
+
+//plot(Th);
+
+//mesh Th = square(3,3);
+//plot(Th);
+
+//savemesh(Th,"./square.msh");
+
+//load"gmsh";
+//load"medit";
+//load"msh3";
+//load"tetgen";
+
+//real cpu = clock();
+//load "iovtk"
+//cout.precision(8);
+//cout.scientific.showpos;
+
+//mesh Th = readmesh("testSimple.mesh");
+//mesh3 Th1 = gmshload3("testSimple.msh");
+//mesh3 Th = tetg(Th1,switch="pqaAAYYQ");
+
+
+//plot(Th); 
+
+//savemesh(Th,"./meshBack.msh");
+
+//fespace VhTestf(Th,P1);
+//VhTestf testxf=x;
+//VhTestf testyf=y;
+
+//{ofstream file("./xf.dat"); file<<testxf[];}
+//{ofstream file("./yf.dat"); file<<testyf[];}
+
+mesh Thf = readmesh("./fluidMeshFF3.msh");
+mesh Ths = readmesh("./solidMeshFF3.msh");
+
+plot(Thf,Ths);
+
+ fespace Nh(Ths,[P0edge,P0edge]);
+ 
+tgv = 1e0;
+
+ varf vn1([nx,ny],[mx,my]) = on(1,2, nx=N.x*0.02,ny=N.y*0.02); 
+ // remember the BC is take the value of DF on bord * tgv 
+ 
+ Nh [nx,ny]; // here the Dof of nx,ny are scramble . 
+ nx[]=vn1(0.,Nh);// set [nx,ny]  DoF. 
+ 
+ plot(Ths,[nx,ny]); 

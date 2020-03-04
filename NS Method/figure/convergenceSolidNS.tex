@@ -1,0 +1,36 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=4.521in,
+height=3.538in,
+at={(0.758in,0.509in)},
+scale only axis,
+xmin=200,
+xmax=1800,
+xlabel style={font=\color{white!15!black}},
+xlabel={$\text{n}_\text{s}$},
+ymin=0.965,
+ymax=1,
+ylabel style={font=\color{white!15!black}},
+ylabel={$\omega{}_\text{s}\text{/}\omega{}_{\text{th}}$},
+axis background/.style={fill=white},
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\addplot [color=black, line width=1.0pt, mark=square, mark options={solid, black}]
+  table[row sep=crcr]{%
+200	0.965654\\
+450	0.9813548\\
+800	0.994165153\\
+1250	0.9961353\\
+1800	0.99625465\\
+};
+\addlegendentry{data1}
+
+\end{axis}
+\end{tikzpicture}%

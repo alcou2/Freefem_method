@@ -1,0 +1,292 @@
+ include "./getARGV.idp"
+//include "./nearest.idp"
+
+real cpu = clock();
+load "iovtk"
+cout.precision(8);
+cout.scientific.showpos;
+
+real E = getARGV("-E",81.); // Solid's Young modulus
+real nus = getARGV("-nus",0.4); // Solid's Poisson ratio
+real mu= E/(2*(1+nus));
+real lambda  = E*nus/((1+nus)*(1-2*nus));
+real rhos = getARGV("-rhos",25.); // Solid density
+
+real re = getARGV("-Re",1e2); // Fluid density
+
+int nH = getARGV("-nH",1); // Mesh number
+
+mesh Thf = readmesh("./meshes/fluidMeshFF"+nH+".msh");
+mesh Ths = readmesh("./meshes/solidMeshFF"+nH+".msh");
+
+//plot(Thf,Ths);
+
+// 1: Plate free surface
+// 2: Plate fixed end
+// 3: Inlet_up
+// 4: Inlet down
+// 5: Outlet
+// 6: Walls
+// 7: Plate inf
+
+savemesh(Ths,"./meshes/solidMesh.msh");
+savemesh(Thf,"./meshes/fluidMesh.msh");
+
+
+real[int] reAvailable=[10,20,30,40,50,60,70,80,90,100,125,175,200,225,250,300,350,400,450,500,600,700,800,900,1000];
+
+real nearest = reAvailable(0); 
+real diff = abs(re-nearest);
+real tempDiff = 0;
+int reSize = reAvailable.n;
+for(int i = 0;i<reSize;i++)
+	{
+	tempDiff = abs(re-reAvailable(i));
+	if(tempDiff < diff) {
+		nearest = reAvailable(i);
+		diff = abs(re-nearest);
+		}
+	}
+
+real reNear = nearest;
+
+cout << "re:" + re << endl;
+cout << "reNear:" + reNear << endl;
+
+fespace Vhfb(Thf,P2);
+
+Vhfb Ux;
+Vhfb Uy;
+
+fespace Vhfbp(Thf,P1);
+Vhfbp P;
+
+{ifstream file("./NSresults/U"+reNear+".dat"); file >>Ux[];};
+{ifstream file("./NSresults/V"+reNear+".dat"); file >>Uy[];};
+{ifstream file("./NSresults/P1"+reNear+".dat"); file >>P[];};
+
+macro epsilon(u1,u2)  [dx(u1),dy(u2),(dy(u1)+dx(u2))/(sqrt(2.))] // EOM
+macro div(u,v) ( dx(u)+dy(v) ) //
+
+// ===================================================
+// matrix operators
+
+
+fespace Vhfu(Thf,[P2,P2]);
+Vhfu [ux,uy],[utx,uty];
+
+fespace Vhfp(Thf,P1);
+Vhfp p,q;
+
+fespace Vhfl(Thf,[P1,P1]);
+Vhfl [lx,ly],[ltx,lty];
+
+fespace Vhsu(Ths,[P2,P2]);
+Vhsu [usx,usy],[ustx,usty];
+
+fespace Vhse(Ths,[P2,P2]);
+Vhse [ex,ey],[etx,ety];
+
+//mesh Thb = emptymesh(Thf,2);
+//plot(Thb); 
+
+//macro epsilon(u1,u2)  [dx(u1),dy(u2),(dy(u1)+dx(u2))/2] // EOM
+//macro dPsil(u1,u2,v1,v2) (epsilon(u1,u2) '* A * epsilon(v1,v2)) // EOM
+//func A = [ [ 2. * mu + lambda, 0., lambda],
+//           [ 0., mu, 0.],
+//           [ lambda, 0., 2. * mu + lambda]];
+
+
+varf as1([usx,usy],[etx,ety]) = 
+	int2d(Ths)( 
+		rhos*(usx*etx+usy*ety) )
+		+ on(2,usx=0,usy=0);
+matrix As1 = as1(Vhsu,Vhse);
+
+
+
+varf as2([ex,ey],[ustx,usty]) =
+	//int2d(Ths)( - dPsil(ex, ey, ustx, usty))
+	//int2d(Ths)( 
+	//	- ( (lambda+2*mu)*dx(ex)*dx(ustx) + mu*(dx(ex)+dy(ey))*dx(usty)
+	//		+ mu*(dx(ex)+dy(ey))*dy(ustx) + (lambda+2*mu)*dy(ey)*dy(usty) )
+	//)
+	int2d(Ths)( 
+		 ( lambda * div(ex, ey) * div(ustx, usty) + 2.*mu * ( epsilon(ex,ey)' * epsilon(ustx,usty)))
+	)
+	+on(2,ex=0,ey=0);
+matrix As2 = as2(Vhse,Vhsu);
+
+varf bs1([usx,usy],[ustx,usty]) =
+	int2d(Ths) (rhos * ( usx*ustx + usy*usty ))
+	+ on(2,usx=0,usy=0);
+matrix Bs1 = bs1(Vhsu,Vhsu);
+
+varf bs2([ex,ey],[etx,ety]) =
+	int2d(Ths) ((ex*etx + ey*ety))
+	+on(2,ex=0,ey=0);
+matrix Bs2 = bs2(Vhse,Vhse);
+
+varf asf([lx,ly],[ustx,usty]) =
+	int1d(Ths,1,2) ((lx*ustx + ly*usty));
+matrix Asf = asf(Vhfl,Vhsu);	
+
+varf k([ex,ey],[ustx,usty]) =
+//	int1d(Ths,1,2) (  
+//		(( (-dx(P)+2/re*dxx(Ux))*ex + (-dy(P)+2/re*dyx(Ux))*ey)*N.x
+//		+ ( 1/re*(dxy(Ux)+dxx(Uy))*ex + 1/re*(dyy(Ux)+dyx(Uy))*ey)*N.y) * ustx
+//
+//		+ (( 1/re*(dxy(Ux)+dxx(Uy))*ex + 1/re*(dyy(Ux)+dyx(Uy))*ey)*N.x
+//		+ ( (-dx(P)+2/re*dxy(Uy))*ex + (-dy(P)+2/re*dyy(Uy))*ey)*N.y) * usty
+//
+//
+//		+ (( dy(ey)*(-P+2/re*dx(Ux)) - dy(ex)*1/re*(dy(Ux)+dx(Uy)) )*N.x
+//		+ ( -dx(ey)*(-P+2/re*dx(Ux)) + dx(ex)*1/re*(dy(Ux)+dx(Uy)) )*N.y) * ustx
+//
+//		+ (( dy(ey)*1/re*(dy(Ux)+dx(Uy)) - dy(ex)*(-P+2/re*dy(Uy)) )*N.x
+//		+ ( -dx(ey)*1/re*(dy(Ux)+dx(Uy)) + dx(ex)*(-P+2/re*dy(Uy)) )*N.y) * usty 
+//	);
+	int1d(Ths,1,2) (  
+		( ((-dx(P)+2/re*dxx(Ux)) + (1/re*(dyy(Ux)+dyx(Uy))))*ex*N.x
+		+ ((-dx(P)+2/re*dxx(Ux)) + (1/re*(dyy(Ux)+dyx(Uy))))*ey*N.y ) * ustx
+
+		+( ((1/re*(dyy(Ux)+dyx(Uy))) + (-dx(P)+2/re*dxy(Uy)) )*ex*N.x
+		+ ((1/re*(dyy(Ux)+dyx(Uy))) + (-dx(P)+2/re*dxy(Uy)) )*ey*N.y ) * usty
+
+
+		+ (( dy(ey)*(-P+2/re*dx(Ux)) - dy(ex)*1/re*(dy(Ux)+dx(Uy)) )*N.x
+		+ ( -dx(ey)*(-P+2/re*dx(Ux)) + dx(ex)*1/re*(dy(Ux)+dx(Uy)) )*N.y) * ustx
+
+		+ (( dy(ey)*1/re*(dy(Ux)+dx(Uy)) - dy(ex)*(-P+2/re*dy(Uy)) )*N.x
+		+ ( -dx(ey)*1/re*(dy(Ux)+dx(Uy)) + dx(ex)*(-P+2/re*dy(Uy)) )*N.y) * usty 
+	);
+
+matrix K = k(Vhse,Vhsu);
+
+varf af1([ux,uy],[utx,uty]) =
+	int2d(Thf) (
+		((ux*dx(Ux)+uy*dy(Ux) + Ux*dx(ux)+Uy*dy(ux))*utx 
+		+ (ux*dx(Uy)+uy*dy(Uy) + Ux*dx(uy)+Uy*dy(uy))*uty)
+
+		+ 2/re * (dx(ux)*dx(utx)+0.5*(dy(ux)+dx(uy))*dx(uty)+0.5*(dy(ux)+dx(uy))*dy(utx)+dy(uy)*dy(uty) )
+	)
+	+ on(3,4,6,7,ux=0,uy=0)
+	+ on(5,uy=0);
+
+matrix Af1 = af1(Vhfu,Vhfu);
+
+varf af2([p],[utx,uty]) =
+	int2d(Thf) (
+		p*(dx(utx)+dy(uty))
+	);
+
+matrix Af2 = af2(Vhfp,Vhfu);
+
+varf af3([ux,uy],[pt]) =
+	int2d(Thf) (
+		pt*(dx(ux)+dy(uy))
+	);
+
+matrix Af3 = af3(Vhfu,Vhfp);
+
+varf af4([lx,ly],[utx,uty]) =
+	int1d(Thf,1,2) (
+		(lx*utx+ly*uty)
+	);
+
+matrix Af4 = af4(Vhfl,Vhfu);
+
+varf af5([ux,uy],[ltx,lty]) =
+	int1d(Thf,1,2) (
+		(ltx*ux+lty*uy)
+	);
+
+matrix Af5 = af5(Vhfu,Vhfl);
+
+
+varf bf([ux,uy],[utx,uty]) =
+	int2d(Thf) (ux*utx+uy*uty);
+matrix Bf = bf(Vhfu,Vhfu);
+
+varf afs([usx,usy],[ltx,lty]) =
+	int1d(Ths,1,2) ( (usx*ltx+usy*lty));
+matrix Afs = afs(Vhsu,Vhfl);
+
+varf t([ex,ey],[ltx,lty]) =
+	//int1d(Ths,1,2) ( (dx(Ux)*ex+dy(Ux)*ey)*utx + (dx(Uy)*ex+dy(Uy)*ey)*uty );
+	int1d(Ths,1,2) ( (dx(Ux)*ex+dy(Ux)*ey)*ltx + (dx(Uy)*ex+dy(Uy)*ey)*lty );
+matrix T = t(Vhse,Vhfl);
+
+// ===================================================
+// Export matrices
+
+ofstream foutAs1("./FFMatrices/As1.dat");
+foutAs1 << As1 << endl;
+ofstream foutAs2("./FFMatrices/As2.dat");
+foutAs2 << As2 << endl;
+
+ofstream foutBs1("./FFMatrices/Bs1.dat");
+foutBs1 << Bs1 << endl;
+ofstream foutBs2("./FFMatrices/Bs2.dat");
+foutBs2 << Bs2 << endl;
+
+ofstream foutAsf("./FFMatrices/Asf.dat");
+foutAsf << Asf << endl;
+
+ofstream foutK("./FFMatrices/K.dat");
+foutK << K << endl;
+
+ofstream foutAf1("./FFMatrices/Af1.dat");
+foutAf1 << Af1 << endl;
+ofstream foutAf2("./FFMatrices/Af2.dat");
+foutAf2 << Af2 << endl;
+ofstream foutAf3("./FFMatrices/Af3.dat");
+foutAf3 << Af3 << endl;
+ofstream foutAf4("./FFMatrices/Af4.dat");
+foutAf4 << Af4 << endl;
+ofstream foutAf5("./FFMatrices/Af5.dat");
+foutAf5 << Af5 << endl;
+
+ofstream foutBf("./FFMatrices/Bf.dat");
+foutBf << Bf << endl;
+
+ofstream foutAfs("./FFMatrices/Afs.dat");
+foutAfs << Afs << endl;
+
+ofstream foutT("./FFMatrices/T.dat");
+foutT << T << endl;
+
+// ===================================================
+// Test matrices
+
+varf testP([p],[q]) =
+	int2d(Thf) (p * q);
+	//+ on(4,p=0);
+matrix TestP = testP(Vhfp,Vhfp);
+
+ofstream foutTestP("./FFMatrices/TestP.dat");
+foutTestP << TestP << endl;
+
+varf testL([lx,ly],[ltx,lty]) =
+	int1d(Ths,1,2) (lx*ltx+ly*lty);
+matrix TestL = testL(Vhfl,Vhfl);
+
+ofstream foutTestL("./FFMatrices/TestL.dat");
+foutTestL << TestL << endl;
+
+
+// Mesh node coordinates
+
+fespace VhTestf(Thf,P2);
+VhTestf testxf=x;
+VhTestf testyf=y;
+
+{ofstream file("./meshes/xf.dat"); file<<testxf[];}
+{ofstream file("./meshes/yf.dat"); file<<testyf[];}
+
+fespace VhTests(Ths,P2);
+VhTests testxs=x;
+VhTests testys=y;
+
+{ofstream file("./meshes/xs.dat"); file<<testxs[];}
+{ofstream file("./meshes/ys.dat"); file<<testys[];}

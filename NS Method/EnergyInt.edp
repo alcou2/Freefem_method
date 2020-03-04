@@ -1,0 +1,52 @@
+
+ include "./getARGV.idp"
+
+mesh Thvint = triangulate("Vx.txt");
+
+
+real E = getARGV("-E",5600.); // Solid's Young modulus
+real nus = getARGV("-nus",0.4); // Solid's Poisson ratio
+real mu= E/(2*(1+nus));
+real lambda  = E*nus/((1+nus)*(1-2*nus));
+real rhos = getARGV("-rhos",50.); // Solid density
+real re = getARGV("-re",100.); // Solid's Young modulus
+
+fespace Vhxyf(Thvint,[P1,P1]);
+Vhxyf [fx,fy];
+
+{ ifstream file("Vx.txt");
+	real xx,yy;
+	for(int i=0;i<fx.n;i++)
+	file >> xx >>yy >> fx[][i]; }
+{ ifstream file("Vy.txt");
+	real xx,yy;
+	for(int i=0;i<fy.n;i++)
+	file >> xx >>yy >> fy[][i]; }
+
+cout << "integral over fluid domain: " + int2d(Thvint)(1/re * (dx(fx)*dx(fx)+0.5*(dy(fx)+dx(fy))*dx(fy)+0.5*(dy(fx)+dx(fy))*dy(fx)+dy(fy)*dy(fy))) << endl;
+{ofstream file("Ef.dat"); file<<int2d(Thvint)(
+(1/re * (dx(fx)*dx(fx)+0.5*(dy(fx)+dx(fy))*dx(fy)+0.5*(dy(fx)+dx(fy))*dy(fx)+dy(fy)*dy(fy))))
+;}
+
+macro epsilon(u1,u2)  [dx(u1),dy(u2),(dy(u1)+dx(u2))/(sqrt(2.))] // EOM
+macro div(u,v) ( dx(u)+dy(v) ) //
+
+mesh Thsint = triangulate("Sx.txt");
+
+fespace Vhxys(Thsint,[P1,P1]);
+Vhxys [sx,sy];
+
+{ ifstream file("Sx.txt");
+	real xx,yy;
+	for(int i=0;i<sx.n;i++)
+	file >> xx >>yy >> sx[][i]; }
+{ ifstream file("Sy.txt");
+	real xx,yy;
+	for(int i=0;i<sy.n;i++)
+	file >> xx >>yy >> sy[][i]; }
+
+cout << "integral over solid domain: " + int2d(Thsint)(
+( lambda * div(sx, sy) * div(sx, sy) + 2.*mu * ( epsilon(sx,sy)' * epsilon(sx,sy)))
+) << endl;
+{ofstream file("Es.dat"); file<< int2d(Thsint)( lambda * div(sx, sy) * div(sx, sy) + 2.*mu * ( epsilon(sx,sy)' * epsilon(sx,sy)));}
+

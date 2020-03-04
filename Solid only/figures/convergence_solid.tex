@@ -1,0 +1,111 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=2.737in,
+height=2.067in,
+at={(1.063in,0.523in)},
+scale only axis,
+xmin=1,
+xmax=5,
+xlabel style={font=\color{white!15!black}},
+xlabel={nHs},
+ymin=0.8,
+ymax=2.1,
+ytick={0.8,1,1.2,1.4,1.6,1.8,2},
+ylabel style={font=\color{white!15!black}},
+ylabel={$\omega\text{/}\omega{}_{\text{th}}$},
+axis background/.style={fill=white},
+title style={font=\bfseries},
+title={Mode 1},
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\addplot [color=blue, mark=o, mark options={solid, blue}]
+  table[row sep=crcr]{%
+1	2.06128284472157\\
+2	1.29103408004355\\
+3	1.14398730934834\\
+4	1.07721125430607\\
+5	1.04883083425638\\
+};
+\addlegendentry{P1 elements}
+
+\addplot [color=black, dashed, mark=square, mark options={solid, black}]
+  table[row sep=crcr]{%
+1	0.998852632957266\\
+2	0.99850228182826\\
+3	0.998477699837551\\
+4	0.998473401389665\\
+5	0.998472141285348\\
+};
+\addlegendentry{P2 elements}
+
+\end{axis}
+
+\begin{axis}[%
+width=2.737in,
+height=2.067in,
+at={(4.664in,0.523in)},
+scale only axis,
+xmin=1,
+xmax=5,
+xlabel style={font=\color{white!15!black}},
+xlabel={nHs},
+ymin=0.8,
+ymax=2.1,
+ytick={0.8,   1, 1.2, 1.4, 1.6, 1.8,   2},
+ylabel style={font=\color{white!15!black}},
+ylabel={$\omega\text{/}\omega{}_{\text{th}}$},
+axis background/.style={fill=white},
+title style={font=\bfseries},
+title={Mode 3},
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\addplot [color=blue, mark=o, mark options={solid, blue}]
+  table[row sep=crcr]{%
+1	1.78914720022587\\
+2	1.25364013389112\\
+3	1.12834849776524\\
+4	1.06567239222191\\
+5	1.03837151700437\\
+};
+\addlegendentry{P1 elements}
+
+\addplot [color=black, dashed, mark=square, mark options={solid, black}]
+  table[row sep=crcr]{%
+1	0.993679439637079\\
+2	0.988173809063513\\
+3	0.987753703518189\\
+4	0.987678042862698\\
+5	0.987654808174205\\
+};
+\addlegendentry{P2 elements}
+
+\end{axis}
+
+\begin{axis}[%
+width=8.177in,
+height=2.865in,
+at={(0in,0in)},
+scale only axis,
+xmin=0,
+xmax=1,
+ymin=0,
+ymax=1,
+axis line style={draw=none},
+ticks=none,
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\end{axis}
+\end{tikzpicture}%

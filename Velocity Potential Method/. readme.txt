@@ -1,0 +1,9 @@
+Starting document: potentialMethod.m
+
+Matlab files used by the main document:
+- runCoupled.m
+- coupled_potential.edp
+- matrix_file_reader_Morse.m
+- removeTGVcoupled.m
+
+The rest of the functions and files are used for results analysis and visualization

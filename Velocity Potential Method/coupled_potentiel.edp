@@ -1,0 +1,167 @@
+include "getARGV.idp"
+
+real cpu = clock();
+load "iovtk"
+cout.precision(8);
+cout.scientific.showpos;
+
+real Lpl = 1.0; // Plate length
+real Tpl = getARGV("-Tpl",0.01); // Plate thickness
+real Rpl = Lpl/Tpl;
+
+real Tf = 2; // Fluid domain height
+real RT = Tf/Tpl; // Ratio between fluid domain and plate thickness
+real RL1 = getARGV("-RL1",5.0); // Ratio between fluid domain before plate and plate length
+real RL2 = getARGV("-RL2",5.0); // Ratio between fluid domain after plate and plate length
+real RL = RL1 + RL2 +1;
+real Lf = Lpl*RL; // Fluid domain length
+
+real E = 1.5e8; // Solid's Young modulus
+real nu = 0; // Solid's Poisson ratio
+real mu= E/(2*(1+nu));
+real lambda  = E*nu/((1+nu)*(1-2*nu));  
+real rhos = getARGV("-rho_s",10000); // Solid density
+
+real rhof = getARGV("-rho_f",100.); // Fluid density
+real U=getARGV("-U",0.0);
+
+border f0(t=0,1) {x = -Lpl*RL1; y = Tf/2 - Tf*t; label = 4;} // inlet
+border f1(t=0,1) {x = -Lpl*RL1 + Lf*t; y = -Tf/2; label = 3;} // bottom wall
+border f2(t=0,1) {x = (1+RL2)*Lpl; y = -Tf/2 + Tf*t; label = 5;} // outlet
+border f3(t=0,1) {x = (1+RL2)*Lpl - Lf*t; y = Tf/2; label = 3;}  // top wall
+
+border b0(t=0,1) {x = 0; y = Tpl/2-Tpl*t; label=1;} // Fixed end of the plate
+border b1(t=0,1) {x = Lpl*t; y = -Tpl/2; label=2;} // plate top
+border b2(t=0,1) {x = Lpl; y = -Tpl/2+Tpl*t; label=6;} // plate's end
+border b3(t=0,1) {x = Lpl - Lpl*t; y = Tpl/2; label=2;} // plate bottom
+
+
+// Display borders
+//plot(b0(5) + b1(25) + b2(5) + b3(25),f0(5) + f1(25) + f2(5) + f3(25), wait = 1);
+
+// Build mesh
+real meshSize = 1;
+real meshSizeSolid = getARGV("-mhS",3);
+real meshSizeFluid = getARGV("-mhF",8);
+
+// Solid mesh
+//mesh Ths = buildmesh (b0(5) + b1(25) + b2(5) + b3(25));
+mesh Ths = buildmesh (b0(meshSizeSolid) + b1(Rpl*meshSizeSolid) + b2(meshSizeSolid) + b3(Rpl*meshSizeSolid));
+
+savemesh(Ths,"./meshes/solidMesh.msh");
+
+// Fluid mesh
+//mesh Thf = buildmesh(f0(5) + f1(25) + f2(5) + f3(25) 
+//	+ b0(-5) + b1(-25) + b2(-5) + b3(-25));
+mesh Thf = buildmesh(f0(Tf*meshSizeFluid) + f1(RL*meshSizeFluid) + f2(Tf*meshSizeFluid) + f3(RL*meshSizeFluid) 
+	+ b0(-meshSizeSolid) + b1(-Rpl*meshSizeSolid) + b2(-meshSizeSolid) + b3(-Rpl*meshSizeSolid));
+
+savemesh(Thf,"./meshes/fluidMesh.msh");
+
+//Show both mesh
+//plot(Thf,Ths, wait=1);
+
+// Compute base flow (incompressible potential flow)
+fespace Vhfb(Thf,P1);
+Vhfb phi, psi;
+
+solve potential(phi,psi) =
+	int2d(Thf) (dx(phi)*dx(psi) + dy(phi)*dy(psi))
+	+ int1d(Thf,4) (U*psi) + on(5,phi=0);
+
+//plot(phi);
+
+//solve stream(phi,psi) =
+//	int2d(Thf) (dx(phi)*dx(psi) + dy(phi)*dy(psi))
+//	+ on (4, phi = U*y) + on (5, phi = U*y) + on (3, phi = U*y)
+//	+ on (1, phi=0) + on(2, phi=0) + on(6, phi=0);
+
+fespace Vhfbv(Thf,[P1,P1]);
+Vhfbv [Uvx,Uvy]=[0., 0.];
+
+[Uvx,Uvy] = [dx(phi),dy(phi)];
+//[Uvx,Uvy] = [dy(phi),-dx(phi)];
+//[Uvx,Uvy] = [U,0];
+
+real tgv = 1e30;
+real sigma = 20;
+
+
+// Solid stiffness K and mass M matrices
+fespace Vhs(Ths,[P1, P1]);
+Vhs [usx,usy],[vsx,vsy];
+
+varf ms([usx,usy], [vsx,vsy]) = 
+	int2d(Ths) (rhos * (usx*vsx + usy*vsy));
+	//+ on(1, usx=0, usy=0) // Clamped end boundary condition
+	//+ on(6, usx=0, usy=0);
+matrix Ms = ms(Vhs, Vhs, solver=UMFPACK);
+
+// Macros
+real sqrt2=sqrt(2.);
+macro epsilon(u1,u2) [dx(u1),dy(u2),(dy(u1)+dx(u2))/sqrt2] //
+macro div(u1,u2) ( dx(u1)+dy(u2) ) //
+
+varf ks([usx,usy],[vsx,vsy]) =
+	//int2d(Ths) (dPsil(usx, usy, vsx, vsy));
+	int2d(Ths) ( lambda * div(usx, usy) * div(vsx, vsy) + 2.*mu * ( epsilon(usx,usy)' * epsilon(vsx,vsy)))
+	+ on(1, usx=0, usy=0);
+	//+ on(6, usx=0, usy=0);
+matrix Ks = ks(Vhs, Vhs, solver=UMFPACK);
+
+
+
+// Hydro matrices
+
+fespace Vhf(Thf, P1);
+Vhf p,q;
+
+varf mafs([p], [ux, uy]) =
+    int1d(Thf,1) (rhof * p * (ux*N.x + uy*N.y))
+	+int1d(Thf,2) (rhof * p * (ux*N.x + uy*N.y))
+	+int1d(Thf,6) (rhof * p * (ux*N.x + uy*N.y));
+matrix MAfs = mafs(Vhf, Vhs);
+
+varf mf([p],[q]) = 
+	int2d(Thf)(rhof * (dx(p)*dx(q) + dy(p)*dy(q)) )
+	//+ on(3,p=0)
+	+ on(4,p=0) 
+	+ on(5,p=0);
+matrix Mf = mf(Vhf,Vhf, solver=UMFPACK);
+
+varf cfs([p],[ux, uy]) =
+	int1d(Thf,2)   (rhof * ((Uvx*dx(p)+Uvx*dy(p))*(N.x*ux + N.y *uy)))
+	+ int1d(Thf,1) (rhof * ((Uvx*dx(p)+Uvy*dy(p))*(N.x*ux + N.y *uy)))
+	+ int1d(Thf,6) (rhof * ((Uvx*dx(p)+Uvy*dy(p))*(N.x*ux + N.y *uy)));
+matrix Cfs = cfs(Vhf, Vhs);
+
+
+varf kfs([ux,uy],[p]) =
+	int1d(Thf,2) (rhof * ( (Uvx*dx(ux)+Uvy*dy(ux))*N.x + (Uvx*dx(uy)+Uvy*dy(uy))*N.y ) * p)
+	+ int1d(Thf,1) (rhof * ( (Uvx*dx(ux)+Uvy*dy(ux))*N.x + (Uvx*dx(uy)+Uvy*dy(uy))*N.y ) * p)
+	+ int1d(Thf,6) (rhof * ( (Uvx*dx(ux)+Uvy*dy(ux))*N.x + (Uvx*dx(uy)+Uvy*dy(uy))*N.y ) * p);
+	//int1d(Thf,2) (rhof * ( (Uvx*dx(ux)+Uvy*dx(uy))*N.x + (Uvx*dy(ux)+Uvy*dy(uy))*N.y ) * p)
+	//+ int1d(Thf,1) (rhof * ( (Uvx*dx(ux)+Uvy*dx(uy))*N.x + (Uvx*dy(ux)+Uvy*dy(uy))*N.y ) * p)
+	//+ int1d(Thf,6) (rhof * ( (Uvx*dx(ux)+Uvy*dx(uy))*N.x + (Uvx*dy(ux)+Uvy*dy(uy))*N.y ) * p);
+matrix Kfs = kfs(Vhs,Vhf);
+
+
+// Export matrices
+
+ofstream foutMs("./FFMatrices/Ms.dat");
+foutMs << Ms << endl;
+
+ofstream foutKs("./FFMatrices/Ks.dat");
+foutKs << Ks << endl;
+
+ofstream foutMAfs("./FFMatrices/MAfs.dat");
+foutMAfs << MAfs << endl;
+
+ofstream foutMf("./FFMatrices/Mf.dat");
+foutMf << Mf << endl;
+
+ofstream foutCfs("./FFMatrices/Cfs.dat");
+foutCfs << Cfs << endl;
+
+ofstream foutKfs("./FFMatrices/Kfs.dat");
+foutKfs << Kfs << endl;

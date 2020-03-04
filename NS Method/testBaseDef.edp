@@ -1,0 +1,126 @@
+ include "./getARGV.idp"
+//include "./nearest.idp"
+
+real cpu = clock();
+load "iovtk"
+cout.precision(8);
+cout.scientific.showpos;
+
+real E = getARGV("-E",81.); // Solid's Young modulus
+real nus = getARGV("-nus",0); // Solid's Poisson ratio
+real mu= E/(2*(1+nus));
+real lambda  = E*nus/((1+nus)*(1-2*nus));
+real rhos = getARGV("-rhos",25.); // Solid density
+
+real re = getARGV("-Re",1e2); // Fluid density
+
+mesh Thf = readmesh("./meshes/fluidMeshFF2.msh");
+mesh Ths = readmesh("./meshes/solidMeshFF2.msh");
+
+//plot(Thf,Ths);
+
+// 1: Plate free surface
+// 2: Plate fixed end
+// 3: Inlet_up
+// 4: Inlet down
+// 5: Outlet
+// 6: Walls
+// 7: Plate inf
+
+savemesh(Ths,"./meshes/solidMesh.msh");
+savemesh(Thf,"./meshes/fluidMesh.msh");
+
+
+real[int] reAvailable=[10,20,30,40,50,60,70,80,90,100,125,175,200,225,250,300,350,400,450,500,600,700,800,900,1000];
+
+real nearest = reAvailable(0); 
+real diff = abs(re-nearest);
+real tempDiff = 0;
+int reSize = reAvailable.n;
+for(int i = 0;i<reSize;i++)
+	{
+	tempDiff = abs(re-reAvailable(i));
+	if(tempDiff < diff) {
+		nearest = reAvailable(i);
+		diff = abs(re-nearest);
+		}
+	}
+
+real reNear = nearest;
+
+cout << "re:" + re << endl;
+cout << "reNear:" + reNear << endl;
+
+fespace Vhfb(Thf,P2);
+
+Vhfb Ux;
+Vhfb Uy;
+
+fespace Vhfbp(Thf,P2);
+Vhfbp P;
+
+{ifstream file("./NSresults/U"+reNear+".dat"); file >>Ux[];};
+{ifstream file("./NSresults/V"+reNear+".dat"); file >>Uy[];};
+{ifstream file("./NSresults/P2"+reNear+".dat"); file >>P[];};
+
+plot(Uy);
+
+macro epsilon(u1,u2)  [dx(u1),dy(u2),(dy(u1)+dx(u2))/(sqrt(2.))] // EOM
+macro div(u,v) ( dx(u)+dy(v) ) //
+
+// ===================================================
+// base flow induced deformation
+
+//fespace Vhfs(Thf,P2);
+//Vhfs sxx = (-P+1/re*(dx(Ux)));
+//sxx = -1;
+//Vhfs syy = (-P+1/re*(dy(Uy)));
+//syy = -1;
+//Vhfs sxy =  1/re*(dy(Ux)+dx(Uy));
+//syy = 0;
+//sxy=0;
+//sxx = 0;
+
+fespace Vhsub(Ths,[P2,P2]);
+Vhsub [usbx,usby],[vsbx ,vsby];
+
+//solve lame([usbx, usby], [vsbx, vsby])
+//   = int2d(Ths)(
+//        lambda * div(usbx,usby) * div(vsbx,vsby)
+//      + 2.*mu * ( epsilon(usbx,usby)' * epsilon(vsbx,vsby) )
+//   )
+//   - int1d(Ths,1)(
+//        ( sxx*N.x + sxy*N.y)*vsbx
+//		+( sxy*N.x +syy*N.y)*vsby
+//   )
+//   + on(2, usbx=0, usby=0)
+//   + on(1,usby=0)
+//   ;
+
+fespace V1h(Thf,P2);
+V1h sigma11,sigma22,sigma12;
+
+  sigma11([x,y]) = (2*dx(Ux)-P);
+  sigma22([x,y]) = (2*dy(Uy)-P);
+  sigma12([x,y]) = (dx(Uy)+dy(Ux));
+
+real coef=0.2;
+
+solve  bbst([usbx,usby],[vsbx,vsby])  = 
+    int2d(Ths)(
+		  lambda*div(vsbx,vsby)*div(usbx,usby)	
+                  +2.*mu*( epsilon(vsbx,vsby)'*epsilon(usbx,usby) ) 
+             )
+  + int1d(Ths,1)( coef*(sigma11*N.x*vsbx + sigma22*N.y*vsby + sigma12*(N.y*vsbx+N.x*vsby) )  )
+  + on(2,usbx=0,usby=0) 
+  ;
+
+
+plot(usbx,usby);
+
+{ofstream file("./usbx.dat"); file<<usbx[];}
+
+coef = 0.01;
+
+mesh Thsd = movemesh(Ths, [x+usbx*coef, y+usby*coef]);
+plot(Ths,Thsd);

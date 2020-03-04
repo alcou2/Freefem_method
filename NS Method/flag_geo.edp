@@ -1,0 +1,81 @@
+//include "getARGV.idp" // Uncomment to test
+
+
+real Lpl = 1; // Plate length
+real Tpl = 0.05; // Plate thickness
+real Rpl = Lpl/Tpl; // Plate aspect ratio
+
+real Tf = 2; // Fluid domain height
+real RT = Tf/Tpl; // Ratio between fluid domain and plate thickness
+real RL1 = 3; // Ratio between fluid domain before plate and plate length
+real RL2 = 4; // Ratio between fluid domain after plate and plate length
+real RL = RL1 + RL2 +1; // Fluid domain length (unit of plate length)
+real Lf = Lpl*RL; // Fluid domain length
+
+
+// ===================================================
+// Define domain
+
+border f0(t=0,1) {x = -Lpl*RL1; y = Tf/2 - Tf*t; label = 3;} // inlet
+
+//border f1(t=0,1) {x = -Lpl*RL1 + Lf*t; y = -Tf/2; label = 3;}
+border f11(t=0,(RL1/RL)) {x =  -Lpl*RL1 + Lpl*RL*t; y = -Tf/2; label = 5;} // bottom wall aft
+border f12(t=(RL1/RL),((1+RL1)/RL)) {x =  -Lpl*RL1 + Lpl*RL*t; y = -Tf/2; label = 5;} // bottom wall under plate
+border f13(t=((1+RL1)/RL),1) {x =  -Lpl*RL1 + Lpl*RL*t; y = -Tf/2; label = 5;} // bottom wall behind
+
+border f2(t=0,1) {x = (1+RL2)*Lpl; y = -Tf/2 + Tf*t; label = 4;} // outlet
+border f21(t=0,0.3) {x = (1+RL2)*Lpl; y = -Tf/2 + Tf*t; label = 4;} // outlet bottom
+border f22(t=0.3,0.5) {x = (1+RL2)*Lpl; y = -Tf/2 + Tf*t; label = 4;} // outlet middle b
+border fxx(t=0,1) {x = (1+RL2)*Lpl - Lpl*(RL2-0.3)*t; y = 0; label = 9;}  // top wall behind
+border f23(t=0.5,0.7) {x = (1+RL2)*Lpl; y = -Tf/2 + Tf*t; label = 4;} // outlet middle b
+border f24(t=0.7,1) {x = (1+RL2)*Lpl; y = -Tf/2 + Tf*t; label = 4;} // outlet top
+
+//border f3(t=0,1) {x = (1+RL2)*Lpl - Lf*t; y = Tf/2; label = 3;}
+border f31(t=0,(RL2/RL)) {x = (1+RL2)*Lpl - Lpl*RL*t; y = Tf/2; label = 5;}  // top wall behind
+border f32(t=(RL2/RL),((RL2+1)/RL)) {x = (1+RL2)*Lpl - Lpl*RL*t; y = Tf/2; label = 5;}  // top wall above plate
+border f33(t=((RL2+1)/RL),1) {x = (1+RL2)*Lpl - Lpl*RL*t; y = Tf/2; label = 5;}  // top wall aft
+
+
+
+border b0(t=0,1) {x = 0; y = Tpl/2-Tpl*t; label=2;} // Fixed end of the plate
+border b1(t=0,1) {x = Lpl*t; y = -Tpl/2; label=1;} // plate top
+border b2(t=0,1) {x = Lpl; y = -Tpl/2+Tpl*t; label=1;} // plate's end
+border b3(t=0,1) {x = Lpl - Lpl*t; y = Tpl/2; label=1;} // plate bottom
+
+
+// Display borders
+//plot(b0(5) + b1(25) + b2(5) + b3(25),f0(5) + f1(25) + f2(5) + f3(25), wait = 1);
+
+
+
+
+// ===================================================
+// Build mesh
+
+real meshSize = 1;
+real meshSizeSolid = getARGV("-mhS",1.0);
+real meshSizeFluid = getARGV("-mhF",10.0);
+real plR = getARGV("-plR",1.5); // Refinement above plate
+real bhR = getARGV("-bhR",2.0); // Refinement behind plate
+real afR = 1.0; // Refinement aft of the plate
+
+// Solid mesh
+mesh Ths = buildmesh (b0(meshSizeSolid) + b1(Rpl*meshSizeSolid) + b2(meshSizeSolid) + b3(Rpl*meshSizeSolid));
+
+savemesh(Ths,"./meshes/solidMesh.msh");
+
+// Fluid mesh
+mesh Thf = buildmesh(f0(afR*meshSizeFluid) 
+	+ f11(RL1*Lpl*meshSizeFluid)+ f12(plR*meshSizeFluid)+ f13(bhR*RL2*Lpl*meshSizeFluid)
+	+ f2(bhR*meshSizeFluid)
+	//+ f21(bhR*meshSizeFluid) + f22(bhR*meshSizeFluid) 
+	//+ fxx(bhR*bhR*meshSizeFluid*RL2*Lpl)
+	//+ f23(bhR*meshSizeFluid) + f24(bhR*meshSizeFluid)
+	+ f31(bhR*RL2*meshSizeFluid) + f32(plR*meshSizeFluid) + f33(RL1*meshSizeFluid)
+	+ b0(-meshSizeSolid) + b1(-Rpl*meshSizeSolid) + b2(-meshSizeSolid) + b3(-Rpl*meshSizeSolid));
+
+savemesh(Thf,"./meshes/fluidMesh.msh");
+
+
+
+//plot(Ths,Thf); // Uncomment to test

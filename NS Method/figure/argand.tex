@@ -1,0 +1,112 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=4.521in,
+height=3.566in,
+at={(0.758in,0.481in)},
+scale only axis,
+xmin=-3.5,
+xmax=1,
+xlabel style={font=\color{white!15!black}},
+xlabel={Growth rate},
+ymin=-4,
+ymax=4,
+ylabel style={font=\color{white!15!black}},
+ylabel={Frequency},
+axis background/.style={fill=white},
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\addplot [color=black, draw=none, mark=asterisk, mark options={solid, black}]
+  table[row sep=crcr]{%
+-1.09413054701411	3.47220066125674e-15\\
+-1.31262831179093	1.69770460230163e-15\\
+-1.47189484372658	-1.21166053174678e-14\\
+-1.89238339675949	-3.86749470088428e-13\\
+-1.31765953239951	1.47955550323795\\
+-1.3176595323995	-1.47955550323797\\
+-2.11291480094223	2.33032457024165e-13\\
+-1.87232242380193	-1.00222575248475\\
+-1.87232242380194	1.00222575248482\\
+-2.1985422670911	-0.743034721648457\\
+-2.1985422670911	0.743034721648757\\
+-2.32629927219105	4.90567100917179e-12\\
+0.797513172411288	-2.90437189548507\\
+0.797513172411289	2.90437189548507\\
+-2.48317144011612	-1.78503174316245\\
+-2.48317144011697	1.78503174316149\\
+-2.72124610372055	-1.39908023776523\\
+-2.72124610372384	1.39908023776673\\
+-3.08531568161265	1.34088052871452e-10\\
+-0.425374909971551	3.67176616990543\\
+-0.42537490997157	-3.67176616990549\\
+};
+\addlegendentry{data1}
+
+\addplot [color=red, draw=none, mark size=6.0pt, mark=o, mark options={solid, red}]
+  table[row sep=crcr]{%
+-1.09413054701411	3.47220066125674e-15\\
+-1.31262831179093	1.69770460230163e-15\\
+-1.47189484372658	-1.21166053174678e-14\\
+-1.89238339675949	-3.86749470088428e-13\\
+-1.31765953239951	1.47955550323795\\
+-1.3176595323995	-1.47955550323797\\
+-2.11291480094223	2.33032457024165e-13\\
+-1.87232242380193	-1.00222575248475\\
+-1.87232242380194	1.00222575248482\\
+-2.1985422670911	-0.743034721648457\\
+-2.1985422670911	0.743034721648757\\
+-2.32629927219105	4.90567100917179e-12\\
+};
+\addlegendentry{data2}
+
+\addplot [color=red, draw=none, mark size=6.0pt, mark=o, mark options={solid, red}]
+  table[row sep=crcr]{%
+-2.48317144011612	-1.78503174316245\\
+-2.48317144011697	1.78503174316149\\
+-2.72124610372055	-1.39908023776523\\
+-2.72124610372384	1.39908023776673\\
+-3.08531568161265	1.34088052871452e-10\\
+};
+\addlegendentry{data3}
+
+\addplot [color=green, draw=none, mark size=6.0pt, mark=o, mark options={solid, green}]
+  table[row sep=crcr]{%
+0.797513172411288	-2.90437189548507\\
+0.797513172411289	2.90437189548507\\
+};
+\addlegendentry{data4}
+
+\addplot [color=green, draw=none, mark size=6.0pt, mark=o, mark options={solid, green}]
+  table[row sep=crcr]{%
+-0.425374909971551	3.67176616990543\\
+-0.42537490997157	-3.67176616990549\\
+};
+\addlegendentry{data5}
+
+\end{axis}
+
+\begin{axis}[%
+width=5.833in,
+height=4.375in,
+at={(0in,0in)},
+scale only axis,
+xmin=0,
+xmax=1,
+ymin=0,
+ymax=1,
+axis line style={draw=none},
+ticks=none,
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\end{axis}
+\end{tikzpicture}%

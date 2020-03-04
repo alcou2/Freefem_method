@@ -1,0 +1,10 @@
+ref_data = csvread('paidoussis.csv',2,0);
+
+figure();
+for i=1:5
+    vectX = ref_data(:,i);
+    vectY = ref_data(:,i+1);
+    vectX(VectX==0) = [];
+    vectY(VectX==0) = [];
+    plot(ref_data(:,i))
+end

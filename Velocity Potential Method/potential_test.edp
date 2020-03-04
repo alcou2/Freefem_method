@@ -1,0 +1,82 @@
+include "getARGV.idp"
+
+real cpu = clock();
+load "iovtk"
+cout.precision(8);
+cout.scientific.showpos;
+
+real Lpl = 2; // Plate length
+real Tpl = 1; // Plate thickness
+real Rpl = Lpl/Tpl;
+
+real Tf = 2; // Fluid domain height
+real RT = Tf/Tpl; // Ratio between fluid domain and plate thickness
+real RL1 = 1; // Ratio between fluid domain before plate and plate length
+real RL2 = 1; // Ratio between fluid domain after plate and plate length
+real RL = RL1 + RL2 +1;
+real Lf = Lpl*RL; // Fluid domain length
+
+real E = 1.5e8; // Solid's Young modulus
+real nu = 0.3; // Solid's Poisson ratio
+real mu= E/(2*(1+nu));
+real lambda  = E*nu/((1+nu)*(1-2*nu));  
+real rhos = 5000; // Solid density
+
+real rhof = 100.; // Fluid density
+real U=getARGV("-U",0);
+
+border f0(t=0,1) {x = -Lpl*RL1; y = Tf/2 - Tf*t; label = 4;} // inlet
+border f1(t=0,1) {x = -Lpl*RL1 + Lf*t; y = -Tf/2; label = 3;} // bottom wall
+border f2(t=0,1) {x = (1+RL2)*Lpl; y = -Tf/2 + Tf*t; label = 5;} // outlet
+border f3(t=0,1) {x = (1+RL2)*Lpl - Lf*t; y = Tf/2; label = 3;}  // top wall
+
+border b0(t=0,1) {x = 0; y = Tpl/2-Tpl*t; label=1;} // Fixed end of the plate
+border b1(t=0,1) {x = Lpl*t; y = -Tpl/2; label=2;} // plate top
+border b2(t=0,1) {x = Lpl; y = -Tpl/2+Tpl*t; label=6;} // plate's end
+border b3(t=0,1) {x = Lpl - Lpl*t; y = Tpl/2; label=2;} // plate bottom
+
+
+// Display borders
+//plot(b0(5) + b1(25) + b2(5) + b3(25),f0(5) + f1(25) + f2(5) + f3(25), wait = 1);
+
+// Build mesh
+
+real meshSize = 1;
+real meshSizeSolid = getARGV("-mhS",1);
+real meshSizeFluid = getARGV("-mhF",5);
+
+// Solid mesh
+//mesh Ths = buildmesh (b0(5) + b1(25) + b2(5) + b3(25));
+mesh Ths = buildmesh (b0(meshSizeSolid) + b1(Rpl*meshSizeSolid) + b2(meshSizeSolid) + b3(Rpl*meshSizeSolid));
+
+savemesh(Ths,"./meshes/solidMesh.msh");
+
+// Fluid mesh
+//mesh Thf = buildmesh(f0(5) + f1(25) + f2(5) + f3(25) 
+//	+ b0(-5) + b1(-25) + b2(-5) + b3(-25));
+mesh Thf = buildmesh(f0(meshSizeFluid) + f1(RL*meshSizeFluid) + f2(meshSizeFluid) + f3(RL*meshSizeFluid) 
+	+ b0(-meshSizeSolid) + b1(-Rpl*meshSizeSolid) + b2(-meshSizeSolid) + b3(-Rpl*meshSizeSolid));
+
+savemesh(Thf,"./meshes/fluidMesh.msh");
+
+//Show both mesh
+plot(Thf,Ths, wait=1); 
+
+fespace Vhfb(Thf,P1);
+fespace Vhfb2(Thf,[P1,P1]);
+Vhfb phi, psi;
+
+real s = 1;
+
+//solve potential(phi,psi) =
+//	int2d(Thf) (dx(phi)*dx(psi) + dy(phi)*dy(psi))
+//	- int1d(Thf,4) (s*psi) + on(5, phi = 0);
+	//+ on (4, phi = x) + on (5, phi = x); //+ on (3, phi = x);
+	//+ on (1, phi=0) + on(2, phi=0) + on(6, phi=0);
+
+solve stream(phi,psi) =
+	int2d(Thf) (dx(phi)*dx(psi) + dy(phi)*dy(psi))
+	+ on (4, phi = y) + on (5, phi = y) + on (3, phi = y)
+	+ on (1, phi=0) + on(2, phi=0) + on(6, phi=0);
+
+plot(phi, fill=0, nbiso=50);

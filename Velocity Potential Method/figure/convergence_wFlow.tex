@@ -1,0 +1,97 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=2.562in,
+height=2.184in,
+at={(0.995in,0.538in)},
+scale only axis,
+xmin=0,
+xmax=12,
+xlabel style={font=\color{white!15!black}},
+xlabel={$\text{n}_{\text{hf}}$},
+ymin=5.8,
+ymax=6.42984620441147,
+ylabel style={font=\color{white!15!black}},
+ylabel={$\omega$},
+axis background/.style={fill=white},
+title={(a)},
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\addplot [color=black, mark=square, mark options={solid, black}]
+  table[row sep=crcr]{%
+1	5.83100831654296\\
+2	6.27970587930453\\
+4	6.37496321712008\\
+6	6.41962477980073\\
+8	6.42984620441147\\
+10	6.41571460008167\\
+12	6.41939931668782\\
+};
+\addlegendentry{data1}
+
+\end{axis}
+
+\begin{axis}[%
+width=2.562in,
+height=2.184in,
+at={(4.367in,0.538in)},
+scale only axis,
+xmode=log,
+xmin=0.1,
+xmax=10,
+xminorticks=true,
+xlabel style={font=\color{white!15!black}},
+xlabel={$\text{r}_{\text{Lo}}$},
+ymin=6.34,
+ymax=6.42,
+ylabel style={font=\color{white!15!black}},
+ylabel={$\omega$},
+axis background/.style={fill=white},
+title={(b)},
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\addplot [color=black, mark=square, mark options={solid, black}]
+  table[row sep=crcr]{%
+0.1	6.3496855677625\\
+0.158489319246111	6.3495961436155\\
+0.251188643150958	6.35501750932923\\
+0.398107170553497	6.37114019712768\\
+0.630957344480193	6.38400927259129\\
+1	6.40463974682261\\
+1.58489319246111	6.40399343806376\\
+2.51188643150958	6.41474740656696\\
+3.98107170553497	6.41820762764107\\
+6.30957344480193	6.41579006450565\\
+10	6.41453703985561\\
+};
+\addlegendentry{data1}
+
+\end{axis}
+
+\begin{axis}[%
+width=7.656in,
+height=2.958in,
+at={(0in,0in)},
+scale only axis,
+xmin=0,
+xmax=1,
+ymin=0,
+ymax=1,
+axis line style={draw=none},
+ticks=none,
+axis x line*=bottom,
+axis y line*=left,
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\end{axis}
+\end{tikzpicture}%
